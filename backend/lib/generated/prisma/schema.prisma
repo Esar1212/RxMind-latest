@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("WEB_PUSH_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =====================
+// User Table
+// =====================
+model User {
+  id                       Int      @id @default(autoincrement())
+  email                    String   @unique
+  password                 String
+  age                      Int
+  phone_number             String   @unique
+  caregiver_phone          String?
+  caregiver_phone_verified Boolean  @default(false)
+  family_members           Json? // store array of names/relations
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+
+  // Relations
+  notifications Notification[]
+  prescriptions Prescription[]
+  tokens        Token[]
+  caregiverOtps CaregiverOtp[]
+}
+
+// =====================
+// Token Table
+// =====================
+model Token {
+  id        String    @id @default(cuid())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jti       String    @unique
+  tokenHash String // sha256(refreshToken)
+  type      TokenType
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum TokenType {
+  REFRESH
+}
+
+// =====================
+// Caregiver OTP Table
+// =====================
+model CaregiverOtp {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  phone     String
+  otpHash   String
+  attempts  Int      @default(0)
+  consumed  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================
+// Prescription Table
+// =====================
+model Prescription {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  family_member_name String
+  prescription_image String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Relations
+  medicines Medicine[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =====================
+// Medicine Table
+// =====================
+model Medicine {
+  id             Int      @id @default(autoincrement())
+  prescriptionId Int
+  medicine_name  String
+  dosage_count   Int
+  timing         Json
+  duration_days  Int
+  start_date     DateTime
+  end_date       DateTime
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  prescription  Prescription   @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+}
+
+// =====================
+// Notification Table
+// =====================
+model Notification {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  medicineId     Int
+  scheduled_time DateTime
+  sent           Boolean  @default(false)
+  created_at     DateTime @default(now())
+
+  // Relations
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
