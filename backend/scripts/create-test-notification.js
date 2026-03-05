@@ -1,37 +1,47 @@
 require('dotenv').config();
 const { PrismaClient } = require('../lib/generated/prisma');
 
-const prisma = new PrismaClient();
+let prisma;
 
 async function createTestNotification() {
   try {
-    // Get current time and add 3 minutes
+    // Initialize Prisma with safer connection parameters
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL + '?pgbouncer=false&connection_limit=1',
+        },
+      },
+    });
+
+    await prisma.$connect();
+
+    // Compute current and future time
     const now = new Date();
-    const scheduledTime = new Date(now.getTime() + 3 * 60 * 1000); // 3 minutes from now
-    
+    const scheduledTime = new Date(now.getTime() + 3 * 60 * 1000);
+
     console.log('🕐 Current time:', now.toLocaleString());
     console.log('⏰ Scheduled time:', scheduledTime.toLocaleString());
-    
-    // Get first available user and medicine (for testing)
-    // Select only columns that exist in the current database to avoid P2022
+
+    // Fetch first user & medicine (ensure minimal fields)
     const user = await prisma.user.findFirst({
-      select: {
-        id: true,
-        email: true,
-      }
+      select: { id: true, email: true },
     });
-    const medicine = await prisma.medicine.findFirst();
-    
+
+    const medicine = await prisma.medicine.findFirst({
+      select: { id: true, medicine_name: true },
+    });
+
     if (!user || !medicine) {
-      console.log('❌ No users or medicines found in database');
-      console.log('Please create a user and medicine first');
+      console.log('❌ No users or medicines found in the database.');
+      console.log('➡️ Please add a user and medicine first.');
       return;
     }
-    
-    console.log('👤 Using user:', user.name || user.email || user.id);
+
+    console.log('👤 Using user:', user.email || user.id);
     console.log('💊 Using medicine:', medicine.medicine_name || medicine.id);
-    
-    // Create the test notification
+
+    // Create the notification
     const notification = await prisma.notification.create({
       data: {
         userId: user.id,
@@ -40,20 +50,22 @@ async function createTestNotification() {
         sent: false,
       },
     });
-    
+
     console.log('✅ Test notification created successfully!');
     console.log('📋 Notification ID:', notification.id);
     console.log('⏰ Will trigger at:', scheduledTime.toLocaleString());
     console.log('');
-    console.log('🎯 What will happen:');
-    console.log('1. Wait 3 minutes');
-    console.log('2. You should get a push notification');
-    console.log('3. The notification will appear even if /alarms page is closed!');
-    
+    console.log('🎯 Expected behavior:');
+    console.log('Wait 3 minutes');
+    console.log('You will receive a push notification');
+    console.log(' Even if /alarms is closed!');
+
   } catch (error) {
     console.error('❌ Error creating test notification:', error);
   } finally {
-    await prisma.$disconnect();
+    if (prisma) {
+      await prisma.$disconnect().catch(() => {});
+    }
   }
 }
 

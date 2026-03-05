@@ -1,5 +1,5 @@
 "use client"
-
+export const dynamic = 'force-dynamic'
 import type React from "react"
 
 import { EyeOff, Eye } from "lucide-react"
@@ -28,6 +28,7 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       })
 
@@ -40,8 +41,8 @@ export default function LoginPage() {
 
       // Save token or redirect
       console.log('Login successful:', result)
-      alert('Loggedin successfully!')
-      localStorage.setItem('token', result.token)
+      alert('Logged in successfully! Redirecting to dashboard...')
+      
 
       window.location.href = '/dashboard'
     } catch (err) {

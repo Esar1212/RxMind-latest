@@ -10,7 +10,7 @@ function authMiddleware(req, res, next) {
   } else if (req.cookies && req.cookies.token) {
     // fallback (if cookies are used in future)
     token = req.cookies.token;
-    console.log("📥 Extracted token from cookies:", token);
+    
   }
 
   if (!token) {
@@ -19,7 +19,7 @@ function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user data (userId, email, etc.)
+    req.user = decoded; // Attach user data (userId, email, etc.) for downstream route handlers to operate on
     console.log("✅ Token verified:", decoded);
     next();
   } catch (err) {

@@ -40,10 +40,16 @@ router.post("/", async (req, res) => {
     console.log("✅ User logged in:", user.email);
     console.log("✅ Generated token:", token);
 
+    res.cookie("token", token, {
+       httpOnly: true,              // prevents JS access (security)
+       secure: false,               // true in production (HTTPS)
+       sameSite: "lax",             // use "none" if frontend is on different domain
+       maxAge: 5 * 60 * 60 * 1000       // 5 hour
+     });
+
     // ✅ send token in JSON (NOT cookie)
     res.json({
       message: "Login successful",
-      token
     });
   } catch (err) {
     console.error("❌ Login error:", err);

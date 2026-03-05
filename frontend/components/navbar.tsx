@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
-import { Menu, X, User, UserPlus, Home, Pill, Calendar, Settings } from "lucide-react"
+import { Menu, X, User, UserPlus, Home, Pill, Calendar, Settings,LogOut,Bell } from "lucide-react"
 import LogoutButton from "./logoutButton/page"
 
 export function Navbar() {
@@ -13,7 +13,27 @@ export function Navbar() {
   const apiBaseurl = process.env.NEXT_PUBLIC_API_BASE_URL!
   const toggleMenu = () => setIsOpen(!isOpen)
   const { isAuthed, setIsAuthed } = useAuth()
+  
+  useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      const res = await fetch(`${apiBaseurl}/api/auth/me`, {
+        credentials: "include"
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setIsAuthed(data.authenticated);
+      } else {
+        setIsAuthed(false);
+      }
+    } catch {
+      setIsAuthed(false);
+    }
+  };
 
+  checkAuth();
+}, [setIsAuthed]);
   
   return (
     <nav className="bg-blue-700 shadow-sm border-b border-blue-600 sticky top-0 z-50">
@@ -53,6 +73,16 @@ export function Navbar() {
                 <Settings className="h-4 w-4" />
                 <span>Profile</span>
               </Link>
+              {isAuthed && (
+                <Link
+                  href="/alarms"
+                  className="flex items-center space-x-1 text-white hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <Bell className="h-4 w-4" />
+                  <span>Alarms</span>
+                </Link>
+              )}
+
             </div>
           </div>
 
@@ -111,6 +141,10 @@ export function Navbar() {
             <Link href={isAuthed ? "/profile" : "/login"} className="flex items-center space-x-2 text-white hover:text-blue-400 hover:bg-blue-800 px-3 py-2 rounded-md text-base font-medium transition-colors" onClick={() => setIsOpen(false)}>
               <Settings className="h-5 w-5" />
               <span>Profile</span>
+            </Link>
+            <Link href={isAuthed ? "/alarms" : "/login"} className="flex items-center space-x-2 text-white hover:text-blue-400 hover:bg-blue-800 px-3 py-2 rounded-md text-base font-medium transition-colors" onClick={() => setIsOpen(false)}>
+              <Settings className="h-5 w-5" />
+              <span>Alarms</span>
             </Link>
 
             {/* Mobile Auth Buttons */}

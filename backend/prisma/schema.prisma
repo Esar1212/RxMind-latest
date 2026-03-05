@@ -5,13 +5,10 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("WEB_PUSH_DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url       = env("DATABASE_URL")
 }
 
-// =====================
-// User Table
-// =====================
+
 model User {
   id                       Int             @id @default(autoincrement())
   email                    String          @unique
@@ -27,35 +24,11 @@ model User {
   // Relations
   notifications            Notification[]
   prescriptions            Prescription[]
-  tokens                   Token[]
   caregiverOtps            CaregiverOtp[]
 }
 
-// =====================
-// Token Table
-// =====================
-model Token {
-  id         String     @id @default(cuid())
-  userId     Int
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jti        String     @unique
-  tokenHash  String     // sha256(refreshToken)
-  type       TokenType
-  userAgent  String?
-  ip         String?
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-}
 
-enum TokenType {
-  REFRESH
-}
 
-// =====================
-// Caregiver OTP Table
-// =====================
 model CaregiverOtp {
   id        String   @id @default(cuid())
   userId    Int
@@ -69,9 +42,7 @@ model CaregiverOtp {
   updatedAt DateTime @updatedAt
 }
 
-// =====================
-// Prescription Table
-// =====================
+
 model Prescription {
   id                 Int          @id @default(autoincrement())
   userId             Int
@@ -85,9 +56,6 @@ model Prescription {
   user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// =====================
-// Medicine Table
-// =====================
 model Medicine {
   id             Int          @id @default(autoincrement())
   prescriptionId Int
@@ -105,9 +73,6 @@ model Medicine {
   notifications  Notification[]
 }
 
-// =====================
-// Notification Table
-// =====================
 model Notification {
   id             Int      @id @default(autoincrement())
   userId         Int

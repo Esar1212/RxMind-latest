@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Pill, Bell, MapPin, FileText, HelpCircle, Settings, LogOut, ChevronLeft, ChevronRight, Menu } from "lucide-react"
+import { LayoutDashboard, Pill, Bell, MapPin, FileText, HelpCircle, Settings, LogOut, ChevronLeft, ChevronRight, Menu,Send } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 
@@ -33,6 +33,11 @@ const navigationItems = [
     title: "Reports & History",
     href: "/reports",
     icon: FileText,
+  },
+  {
+    title: "MediBuddy",
+    href: "/medibuddy",
+    icon: Send,
   },
   {
     title: "Help & Support",

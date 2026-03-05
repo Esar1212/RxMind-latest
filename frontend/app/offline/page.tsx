@@ -26,7 +26,7 @@ export default function OfflinePage() {
         <h2 className="text-2xl font-bold text-gray-800 mb-4">You're Offline</h2>
         <p className="text-gray-600 mb-8 leading-relaxed">
           It looks like you've lost your internet connection. Don't worry - you can still access some features of
-          RxCare while offline.
+          RxMind while offline.
         </p>
 
         {/* Available Offline Features */}

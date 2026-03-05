@@ -22,7 +22,6 @@ self.addEventListener('push', (event) => {
       const data = event.data.json();
       console.log('📋 Push data:', data);
       
-      // Show notification (no sound here - will play when user lands on alarms page)
       const tagId = data.notificationId ? `medication-reminder-${data.notificationId}` : 'medication-reminder-generic';
       const options = {
         body: data.body || 'Time to take your medicine!',
@@ -59,7 +58,6 @@ self.addEventListener('push', (event) => {
     } catch (error) {
       console.error('❌ Error parsing push data:', error);
       
-      // Fallback notification
       const options = {
         body: 'Time to take your medicine!',
         icon: '/icon-192x192.png',
@@ -89,7 +87,6 @@ self.addEventListener('push', (event) => {
       })());
     }
   } else {
-    // No data payload - show a generic reminder
     const options = {
       body: 'Time to take your medicine!',
       icon: '/icon-192x192.png',
@@ -120,50 +117,7 @@ self.addEventListener('push', (event) => {
   }
 });
 
-// Function to play alarm sound
-async function playAlarmSound() {
-  try {
-    console.log('🔊 Service Worker: Playing alarm sound...');
-    
-    // Create audio context for better browser compatibility
-    const audioContext = new (self.AudioContext || self.webkitAudioContext)();
-    
-    // Fetch the audio file
-    const response = await fetch('/alarm.mp3');
-    const arrayBuffer = await response.arrayBuffer();
-    
-    // Decode the audio
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    
-    // Create source and play
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
-    source.loop = true; // Loop the alarm sound
-    
-    // Start playing
-    source.start(0);
-    
-    // Store reference to stop later
-    self.alarmSource = source;
-    
-    console.log('✅ Service Worker: Alarm sound started successfully');
-    
-    // Auto-stop after 30 seconds to prevent infinite looping
-    setTimeout(() => {
-      if (self.alarmSource) {
-        self.alarmSource.stop();
-        self.alarmSource = null;
-        console.log('⏹️ Service Worker: Alarm sound auto-stopped after 30 seconds');
-      }
-    }, 30000);
-    
-  } catch (error) {
-    console.error('❌ Service Worker: Failed to play alarm sound:', error);
-  }
-}
-
-// Function to stop alarm sound
+// Function to stop alarm sound (kept in case page wants to signal SW)
 function stopAlarmSound() {
   if (self.alarmSource) {
     self.alarmSource.stop();
@@ -202,7 +156,8 @@ self.addEventListener('notificationclick', (event) => {
           if ('navigate' in client) {
             await client.navigate(targetUrl);
           }
-          try { client.postMessage({ type: 'NOTIFICATION_CLICKED' }); } catch {}
+          // 🚨 Tell the page to play the alarm
+          client.postMessage({ type: 'PLAY_ALARM', payload: event.notification.data });
           return;
         } catch (e) {
           console.warn('⚠️ Failed to focus/navigate existing client:', e);
@@ -211,7 +166,7 @@ self.addEventListener('notificationclick', (event) => {
 
       console.log('🆕 No existing windows found, opening new alarms page...');
       const newClient = await self.clients.openWindow(targetUrl);
-      try { newClient && newClient.postMessage({ type: 'NOTIFICATION_CLICKED' }); } catch {}
+      try { newClient && newClient.postMessage({ type: 'PLAY_ALARM', payload: event.notification.data }); } catch {}
     } catch (error) {
       console.error('❌ Error handling notification click:', error);
       await self.clients.openWindow('/alarms');
@@ -222,19 +177,16 @@ self.addEventListener('notificationclick', (event) => {
 // Notification close event
 self.addEventListener('notificationclose', (event) => {
   console.log('❌ Service Worker: Notification closed');
-  // Don't stop alarm sound here - let it play when user lands on alarms page
 });
 
 // Push subscription change event
 self.addEventListener('pushsubscriptionchange', (event) => {
   console.log('🔄 Service Worker: Push subscription changed');
-  // Handle subscription renewal if needed
 });
 
 // Background sync event
 self.addEventListener('sync', (event) => {
   console.log('🔄 Service Worker: Background sync event:', event.tag);
-  // Handle background sync if needed
 });
 
 // Message event for communication with main thread
@@ -246,5 +198,3 @@ self.addEventListener('message', (event) => {
     event.ports[0].postMessage({ success: true });
   }
 });
-
-

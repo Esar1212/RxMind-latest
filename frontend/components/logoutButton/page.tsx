@@ -17,8 +17,12 @@ export default function LogoutButton({ onLogout }: LogoutButtonProps) {
     try{
 
       // 🔑 Remove token from localStorage/sessionStorage
-      localStorage.removeItem("token");
-      setIsAuthed(false);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
+
+      setIsAuthed(!res.ok);
       console.log("Logged out successfully!");
 
       // 🔥 Call parent callback (Navbar)

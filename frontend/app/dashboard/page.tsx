@@ -43,16 +43,10 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const token = localStorage.getItem("token") // ✅ read token from localStorage
-        if (!token) {
-          throw new Error("No token found")
-        }
 
         const res = await fetch(`${apiBaseurl}/api/dashboard`, {
           method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`, // ✅ attach token
-          },
+          credentials: "include"
         })
 
         if (!res.ok) throw new Error("Failed to fetch dashboard data")
