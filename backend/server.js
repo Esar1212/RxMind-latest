@@ -53,52 +53,6 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// ---------- Web Push ----------
-// if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-//   webpush.setVapidDetails(
-//     process.env.VAPID_SUBJECT || 'mailto:admin@example.com',
-//     process.env.VAPID_PUBLIC_KEY,
-//     process.env.VAPID_PRIVATE_KEY
-//   );
-// }
-
-// ---------- Push endpoints ----------
-// app.post('/api/push/subscribe', (req, res) => {
-//   try {
-//     const sub = req.body;
-//     if (!sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth) {
-//       return res.status(400).json({ error: 'Invalid subscription' });
-//     }
-//     pushSubscriptions.set(sub.endpoint, sub);
-//     return res.json({ success: true, message: 'Subscription stored' });
-//   } catch (e) {
-//     return res.status(500).json({ error: e.message });
-//   }
-// });
-
-// async function sendPushToAll(payload) {
-//   const tasks = [];
-//   for (const [endpoint, sub] of pushSubscriptions.entries()) {
-//     tasks.push(webpush.sendNotification(sub, JSON.stringify(payload))
-//       .catch(() => pushSubscriptions.delete(endpoint)));
-//   }
-//   await Promise.allSettled(tasks);
-// }
-
-// app.post('/api/push/clear', (req,res) => {
-//   pushSubscriptions.clear();
-//   return res.json({ success:true });
-// });
-
-// app.get('/api/push/count', (req,res) => {
-//   return res.json({ count: pushSubscriptions.size });
-// });
-
-// app.post('/api/push/test', async (req,res) => {
-//   await sendPushToAll({ title:'Test', body:'Test push', url:'/alarms' });
-//   res.json({ success:true });
-// });
-
 // ---------- DB helpers ----------
 async function ensureDbConnection() {
   try {
